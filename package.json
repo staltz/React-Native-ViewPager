@@ -27,6 +27,12 @@
     "tab-bar",
     "tab-view"
   ],
+  "dependencies": {
+    "prop-types": ">=15",
+    "react": ">=16.9.0",
+    "react-native": ">=0.61.0",
+    "@react-native-community/viewpager": "^1.1.7"
+  },
   "author": "ZubinTang",
   "license": "ISC",
   "bugs": {
