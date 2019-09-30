@@ -24,10 +24,10 @@ export default class ViewPager extends Component {
         onPageScroll: null,
         onPageSelected: null,
         onPageScrollStateChanged: null,
-        pageMargin: 0
+        pageMargin: 0,
+        horizontalScroll: true
     }
 
-    state = {width: 0, height: 0}
 
     _scrollState = SCROLL_STATE.idle
 
@@ -54,6 +54,7 @@ export default class ViewPager extends Component {
         this._setScrollState = this._setScrollState.bind(this)
         this.setPageWithoutAnimation = this.setPageWithoutAnimation.bind(this)
         this.setPage = this.setPage.bind(this)
+        this.state = {width: 0, height: 0, page: props.initialPage}
     }
 
     render () {
@@ -62,6 +63,7 @@ export default class ViewPager extends Component {
                 {...this.props}
                 scrollEnabled={this.props.horizontalScroll ? true : false}
                 ref={VIEWPAGER_REF}
+                key={this.props.children ? this.props.children.length : 0}
                 onPageScroll={this._onPageScrollOnAndroid}
                 onPageSelected={this._onPageSelectedOnAndroid}
             />
@@ -87,6 +89,7 @@ export default class ViewPager extends Component {
             onLayout: this._onScrollViewLayout,
             horizontal: true,
             pagingEnabled: this.props.horizontalScroll ? true : false,
+            scrollEnabled: this.props.horizontalScroll ? true : false,
             scrollsToTop: false,
             showsHorizontalScrollIndicator: false,
             showsVerticalScrollIndicator: false,
@@ -102,7 +105,7 @@ export default class ViewPager extends Component {
             marginHorizontal: -this.props.pageMargin / 2
         }
         if (this.props.style && !this.props.style.height)
-            return <ScrollView {...props} style={[this.props.style, scrollViewStyle]} />
+            return <ScrollView {...props} style={[scrollViewStyle, this.props.style]} />
         else return (
             <View style={this.props.style} >
                 <ScrollView {...props} style={scrollViewStyle} />
@@ -121,12 +124,13 @@ export default class ViewPager extends Component {
         if (this.props.onPageSelected && offset === 0) {
             this.props.onPageSelected({position})
             this.props.onPageScrollStateChanged && this._setScrollState(SCROLL_STATE.idle)
+            this.setState({page: position})
         }
     }
 
     _onScrollViewLayout (event) {
         let {width, height} = event.nativeEvent.layout
-        this.setState({width, height})
+        this.setState({width, height}, () => Platform.OS === 'ios' && this.setPageWithoutAnimation(this.state.page))
     }
 
     _childrenWithOverridenStyle () {
@@ -159,6 +163,7 @@ export default class ViewPager extends Component {
     }
 
     setPageWithoutAnimation (selectedPage) {
+        this.setState({page: selectedPage})
         if (this.props.forceScrollView || Platform.OS === 'ios')
             this.refs[SCROLLVIEW_REF].scrollTo({x: this.state.width * selectedPage, animated: false})
         else {
@@ -168,6 +173,7 @@ export default class ViewPager extends Component {
     }
 
     setPage (selectedPage) {
+        this.setState({page: selectedPage})
         if (this.props.forceScrollView || Platform.OS === 'ios') this.refs[SCROLLVIEW_REF].scrollTo({x: this.state.width * selectedPage})
         else {
             this.refs[VIEWPAGER_REF].setPage(selectedPage)
