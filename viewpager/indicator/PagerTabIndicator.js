@@ -5,7 +5,7 @@
 'use strict'
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { StyleSheet, View, ViewPropTypes, Image, Text, TouchableOpacity } from 'react-native'
+import { StyleSheet, View, ViewPropTypes, TouchableOpacity } from 'react-native'
 import IndicatorViewPager from '../IndicatorViewPager'
 
 export default class PagerTabIndicator extends Component {
@@ -14,16 +14,11 @@ export default class PagerTabIndicator extends Component {
         initialPage: PropTypes.number,
         pager: PropTypes.instanceOf(IndicatorViewPager),
         tabs: PropTypes.arrayOf(PropTypes.shape({
-            text: PropTypes.string,
-            iconSource: Image.propTypes.source,
-            selectedIconSource: Image.propTypes.source
+            normal: PropTypes.any,
+            selected: PropTypes.any
         })).isRequired,
         itemStyle: ViewPropTypes.style,
         selectedItemStyle: ViewPropTypes.style,
-        iconStyle: Image.propTypes.style,
-        selectedIconStyle: Image.propTypes.style,
-        textStyle: Text.propTypes.style,
-        selectedTextStyle: Text.propTypes.style,
         changePageWithAnimation: PropTypes.bool,
     }
 
@@ -38,8 +33,7 @@ export default class PagerTabIndicator extends Component {
 
     render () {
         let {
-            tabs, pager, style, itemStyle, selectedItemStyle, iconStyle,
-            selectedIconStyle, textStyle, selectedTextStyle, changePageWithAnimation
+            tabs, pager, style, itemStyle, selectedItemStyle, onSelect,
         } = this.props
         if (!tabs || tabs.length === 0) return null
 
@@ -56,17 +50,12 @@ export default class PagerTabIndicator extends Component {
                                 pager.setPage(index);
                             else pager.setPageWithoutAnimation(index);
                         }
+                        if (onSelect) {
+                            onSelect(index);
+                        }
                     }}
                 >
-                    <Image
-                        style={[styles.image, isSelected ? selectedIconStyle : iconStyle]}
-                        source={isSelected ? tab.selectedIconSource : tab.iconSource}
-                    />
-                    <Text
-                        style={[isSelected ? styles.textSelected : styles.text, isSelected ? selectedTextStyle : textStyle]}
-                    >
-                        {tab.text}
-                    </Text>
+                    {isSelected ? tab.selected : tab.normal}
                 </TouchableOpacity>
             )
         })
@@ -77,7 +66,10 @@ export default class PagerTabIndicator extends Component {
         )
     }
 
-    onPageSelected (e) {
+    onPageSelected(e) {
+        if (this.props.onSelect) {
+            this.props.onSelect(e.position);
+        }
         this.setState({selectedIndex: e.position})
     }
 }
@@ -85,25 +77,9 @@ export default class PagerTabIndicator extends Component {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        paddingTop: 8,
-        paddingBottom: 4,
-        borderTopWidth: 0.5,
-        borderTopColor: '#E0E0E0',
-        backgroundColor: '#F7F7F7'
     },
     itemContainer: {
         alignItems: 'center',
-        flex: 1
+    flex: 1,
     },
-    image: {},
-    text: {
-        marginTop: 4,
-        fontSize: 11,
-        color: '#999999'
-    },
-    textSelected: {
-        marginTop: 4,
-        fontSize: 11,
-        color: '#3584F6'
-    }
-})
+});
